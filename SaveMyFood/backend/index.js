@@ -24,7 +24,7 @@ app.use('/api/pantry',pantryMiddleware,pantryRouter);
 
 
 cron.schedule("0 9 * * *", async () => {
-  logger.info("🔔 Running pantry check (test mode, every minute)...");
+  logger.info("🔔 Running daily pantry check at 9 AM...");
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
