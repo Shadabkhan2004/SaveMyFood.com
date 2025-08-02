@@ -24,7 +24,7 @@ app.use('/api/pantry',pantryMiddleware,pantryRouter);
 
 
 cron.schedule("0 9 * * *", async () => {
-  logger.info("🔔 Running pantry check (test mode, every minute)...");
+  logger.info("🔔 Running daily pantry check at 9 AM...");
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -82,7 +82,10 @@ cron.schedule("0 9 * * *", async () => {
 });
 
 
-app.listen(process.env.PORT,() => {
-  console.log(`Server is running at ${process.env.PORT}`);
-})
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`✅ Server is running on port ${PORT}`);
+});
+
 
