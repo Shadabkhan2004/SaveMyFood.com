@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\iamsh\\Desktop\\FullProjects\\SaveMyFood\\backend\\logs\\.56b175ca92d178a23b94b02b482c90b4224e69ef-audit.json",
+    "files": [
+        {
+            "date": 1754073307128,
+            "name": "C:\\Users\\iamsh\\Desktop\\FullProjects\\SaveMyFood\\backend\\logs\\cron-2025-08-02.log",
+            "hash": "35cfd789fb9fd4f2ad9d423f23152c145a27bc97057afc418d779cc016cc1d7a"
+        }
+    ],
+    "hashType": "sha256"
+}
