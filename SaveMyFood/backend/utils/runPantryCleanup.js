@@ -1,4 +1,4 @@
-const PantryItem = require("../models/PantryItem");
+const PantryItem = require("../models/pantryItem");
 const { sendEmail } = require("../utils/email");
 const { reminderTemplate, expiredTemplate } = require("../utils/emailTemplate");
 
