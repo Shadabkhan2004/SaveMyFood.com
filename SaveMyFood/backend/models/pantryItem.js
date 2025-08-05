@@ -67,4 +67,4 @@ const pantryItemSchema = mongoose.Schema({
   timestamps:true,
 });
 
-module.exports = mongoose.model('PantryItem',pantryItemSchema);
+module.exports = mongoose.models.PantryItem || mongoose.model("PantryItem", pantryItemSchema);

@@ -1,11 +1,18 @@
 const express = require("express");
-const runPantryCleanup = require("../utils/runPantryCleanup");
 const router = express.Router();
+const runPantryCleanup = require("../utils/runPantryCleanup");
 
-// Manual trigger: GET /api/cron/run
 router.get("/run", async (req, res) => {
-  await runPantryCleanup();
-  res.json({ success: true, message: "Cron job executed manually." });
+  try {
+    const result = await runPantryCleanup();
+
+    res.status(200).send(
+      `Cleanup complete: ${result.expiredCount} expired items removed, ${result.reminderCount} emails sent`
+    );
+  } catch (err) {
+    console.error("Cron Error:", err.message);
+    res.status(500).send("Cleanup failed");
+  }
 });
 
 module.exports = router;

@@ -1,64 +1,66 @@
-// utils/runCron.js
-const PantryItem = require("../models/pantryItem");
-const sendEmail = require("../utils/email");
+const PantryItem = require("../models/PantryItem");
+const { sendEmail } = require("../utils/email");
 const { reminderTemplate, expiredTemplate } = require("../utils/emailTemplate");
-const logger = require("../logger");
 
 async function runPantryCleanup() {
-  logger.info("🔔 Running pantry check via manual trigger...");
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  try {
-    const items = await PantryItem.find().populate("userId");
+  // Get only needed fields for performance
+  const items = await PantryItem.find({}, "name expiryDate userId lastNotificationDate")
+    .populate("userId", "name email");
 
-    for (const item of items) {
-      if (!item.userId) {
-        logger.warn(`Item "${item.name}" has no user attached, skipping`);
-        continue;
-      }
+  const expiredItems = [];
+  const reminders = [];
 
-      const expiry = new Date(item.expiryDate);
-      expiry.setHours(0, 0, 0, 0);
+  for (const item of items) {
+    if (!item.userId) continue;
 
-      const daysLeft = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
-      const lastNotified = item.lastNotificationDate
-        ? new Date(item.lastNotificationDate).toDateString()
-        : null;
+    const expiry = new Date(item.expiryDate);
+    expiry.setHours(0, 0, 0, 0);
 
-      logger.info(
-        `🔹 Checking "${item.name}" for ${item.userId.name} | Days left: ${daysLeft} | Last notified: ${lastNotified}`
-      );
+    const daysLeft = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+    const lastNotified = item.lastNotificationDate
+      ? new Date(item.lastNotificationDate).toDateString()
+      : null;
 
-      // Reminder emails (3, 2, 1 days left)
-      if (daysLeft <= 3 && daysLeft >= 0 && lastNotified !== today.toDateString()) {
-        await sendEmail(
-          item.userId.email,
-          `Pantry Alert: ${item.name} expires in ${daysLeft} day(s)`,
-          reminderTemplate(item.userId.name, item.name, daysLeft)
-        );
+    // Reminder (3,2,1 days left)
+    if (daysLeft <= 3 && daysLeft >= 0 && lastNotified !== today.toDateString()) {
+      reminders.push({
+        email: item.userId.email,
+        subject: `Pantry Alert: ${item.name} expires in ${daysLeft} day(s)`,
+        html: reminderTemplate(item.userId.name, item.name, daysLeft),
+      });
 
-        logger.info(`✅ Reminder email sent to ${item.userId.email} for "${item.name}"`);
-        item.lastNotificationDate = today;
-        await item.save();
-      }
-
-      // Expired items
-      if (daysLeft < 0) {
-        await sendEmail(
-          item.userId.email,
-          `Pantry Alert: ${item.name} expired`,
-          expiredTemplate(item.userId.name, item.name)
-        );
-
-        logger.info(`❌ "${item.name}" expired and removed from DB`);
-        await PantryItem.findByIdAndDelete(item._id);
-      }
+      item.lastNotificationDate = today;
+      await item.save();
     }
-  } catch (err) {
-    logger.error(`❌ Error in cron job: ${err.message}`);
+
+    // Expired items
+    if (daysLeft < 0) {
+      expiredItems.push(item._id);
+      reminders.push({
+        email: item.userId.email,
+        subject: `Pantry Alert: ${item.name} expired`,
+        html: expiredTemplate(item.userId.name, item.name),
+      });
+    }
   }
+
+  // Delete expired items in one go
+  if (expiredItems.length > 0) {
+    await PantryItem.deleteMany({ _id: { $in: expiredItems } });
+  }
+
+  // Send emails asynchronously (not blocking response)
+  reminders.forEach((mail) => {
+    sendEmail(mail.email, mail.subject, mail.html).catch(console.error);
+  });
+
+  return {
+    expiredCount: expiredItems.length,
+    reminderCount: reminders.length,
+  };
 }
 
 module.exports = runPantryCleanup;
