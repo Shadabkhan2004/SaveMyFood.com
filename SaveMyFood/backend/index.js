@@ -16,6 +16,9 @@ app.use(cors());
 app.use('/api/auth', authRouter);
 app.use('/api/pantry', pantryMiddleware, pantryRouter);
 app.use('/api/cron', cronRouter);
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
 
 const PORT = process.env.PORT || 3000;
 
