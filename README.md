@@ -18,7 +18,7 @@ A full-stack pantry management app that helps users track food expiry dates and 
 
 ## Tech Stack
 
-**Backend:** Node.js · Express · MongoDB · Mongoose · Nodemailer · node-cron  
+**Backend:** Node.js · Express · MongoDB · Mongoose · Nodemailer
 **Frontend:** HTML · CSS · JavaScript  
 **Auth:** JWT
 
