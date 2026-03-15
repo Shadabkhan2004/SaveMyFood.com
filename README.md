@@ -67,7 +67,3 @@ npm start
 5. Once an item expires, a final notification is sent and the item is removed from your pantry
 
 ---
-
-## License
-
-MIT
